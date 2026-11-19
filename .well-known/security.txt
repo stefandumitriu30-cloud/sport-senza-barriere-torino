@@ -1,0 +1,5 @@
+Contact: mailto:stefan.dumitriu30@gmail.com
+Expires: 2027-10-31T23:00:00.000Z
+Preferred-Languages: it, en
+Canonical: https://sportaperto.com/.well-known/security.txt
+Policy: https://sportaperto.com/info.html
