@@ -261,7 +261,9 @@ let map=null, layer=null, lastFit="";
 function initMap(){
   if(map || typeof L==="undefined") return;
   map = L.map("map",{scrollWheelZoom:false}).setView([45.062,7.668],10);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,
+  // OpenStreetMap richiede di sapere da quale sito arrivano le richieste: solo per le immagini della mappa
+  // inviamo l'origine (https://sportaperto.com), mai la pagina precisa. Tutto il resto resta senza referrer.
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19, referrerPolicy:"strict-origin",
     attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
   layer = L.layerGroup().addTo(map);
 }
