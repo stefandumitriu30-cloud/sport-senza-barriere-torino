@@ -9,8 +9,8 @@ Versione beta. I luoghi provengono da fonti pubbliche (Comune di Torino, Regione
 
 ## Tecnologia
 - Un solo file `index.html` (HTML, CSS, JavaScript senza framework).
-- Mappa: Leaflet (servito dal sito, cartella vendor/) + OpenStreetMap.
-- Carattere Atkinson Hyperlegible servito dal sito (cartella fonts/), senza Google Fonts.
+- Mappa: Leaflet (leaflet.js e leaflet.css, serviti dal sito) + OpenStreetMap.
+- Carattere Atkinson Hyperlegible servito dal sito (fonts.css e file .woff2), senza Google Fonts.
 - Pagina info.html con informazioni, privacy e contatti.
 - PWA: `manifest.webmanifest` e `sw.js` permettono di installarla sul telefono e aprirla anche offline.
 - Pubblicata con GitHub Pages.
