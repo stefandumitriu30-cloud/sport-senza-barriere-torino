@@ -1,6 +1,8 @@
 // Service worker: l'app si apre anche senza connessione (la mappa richiede internet).
-const CACHE = "ssb-v3";
-const SHELL = ["./", "index.html", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"];
+const CACHE = "ssb-v4";
+const SHELL = ["./", "index.html", "info.html", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png",
+  "fonts/fonts.css", "fonts/atkinson-hyperlegible-latin-400-normal.woff2", "fonts/atkinson-hyperlegible-latin-700-normal.woff2",
+  "vendor/leaflet/leaflet.css", "vendor/leaflet/leaflet.js"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
