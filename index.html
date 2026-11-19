@@ -130,6 +130,22 @@ form.rep{display:grid;gap:10px;margin-top:8px}
 form.rep .row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
 select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:8px;padding:.35em .5em;min-height:44px}
 textarea{width:100%;min-height:80px}
+.st.misto{color:var(--unk)}
+.rating{margin:0 0 8px;font-size:1.05em}
+.rating span,.verif span{color:#b7791f;letter-spacing:1px}
+ul.comments{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+ul.comments li{border-left:4px solid var(--accent);padding:4px 12px;background:var(--bg);border-radius:6px}
+ul.comments p{margin:2px 0}
+fieldset.stars{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+fieldset.stars input{position:absolute;opacity:0;width:1px;height:1px}
+fieldset.stars label{border:2px solid var(--line);border-radius:8px;padding:.3em .6em;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;color:#b7791f}
+fieldset.stars input:checked+label{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+fieldset.stars input:focus-visible+label{outline:3px solid var(--mark);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+form.rep input[type=text],form.rep input:not([type]){font:inherit;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:8px;padding:.35em .5em;min-height:44px}
+.consent{display:flex;gap:8px;align-items:flex-start}
+.consent input{width:22px;height:22px;margin-top:3px;flex:none}
 .thanks{background:var(--bg);border-left:6px solid var(--ok);padding:8px 12px}
 .empty{padding:20px;text-align:center;color:var(--muted)}
 footer{max-width:1200px;margin:0 auto;padding:8px 16px 32px;color:var(--muted);font-size:.85em}
@@ -148,7 +164,7 @@ footer{max-width:1200px;margin:0 auto;padding:8px 16px 32px;color:var(--muted);f
     </div>
   </div>
 </header>
-<div class="proto" role="note"><p><strong>Versione beta.</strong> Luoghi reali trovati in fonti pubbliche; i dati di accessibilità non sono ancora verificati sul posto. Aiutaci a completarli con il pulsante "Segnala com'è". <a href="info.html" style="color:#000">Leggi le informazioni sui dati</a>.</p></div>
+<div class="proto" role="note"><p><strong>Versione beta.</strong> Luoghi reali trovati in fonti pubbliche; i dati di accessibilità non sono ancora verificati sul posto. Aiutaci a completarli raccontando com'è un luogo in cui sei stato. <a href="info.html" style="color:#000">Leggi le informazioni sui dati</a>.</p></div>
 
 <main>
   <section aria-labelledby="cerca-t">
@@ -305,9 +321,48 @@ const SPORTS = [
 ];
 
 const state = {dis:new Set(), sport:new Set(), zona:"", sel:null, view:"list"};
-let reports = {};
-try{ reports = JSON.parse(localStorage.getItem("ssb-reports")||"{}"); }catch(e){ reports = {}; }
-function saveReports(){ try{ localStorage.setItem("ssb-reports", JSON.stringify(reports)); }catch(e){} }
+// ---- Segnalazioni condivise (Supabase). Le nuove segnalazioni restano "in attesa" finché non vengono approvate.
+const SUPA_URL = "https://bdutfhmmigdkwwupnwoi.supabase.co";
+const SUPA_KEY = "sb_publishable_Wc8k-L3JfOzOwh5XX2h3-A_wylqimp9";   // chiave pubblica: protetta dalle regole del database
+const SHARED_ON = !!(SUPA_URL && SUPA_KEY);
+function supaHeaders(extra){
+  const h = {"apikey": SUPA_KEY, "Content-Type": "application/json"};
+  if(!SUPA_KEY.startsWith("sb_publishable_")) h["Authorization"] = "Bearer " + SUPA_KEY;
+  return Object.assign(h, extra||{});
+}
+let community = {};            // place_id -> {crit:{id:{si,no}}, stars:[], comments:[]}
+let communityState = SHARED_ON ? "loading" : "off";
+let sent = {};
+try{ sent = JSON.parse(localStorage.getItem("ssb-sent")||"{}"); }catch(e){ sent = {}; }
+function saveSent(){ try{ localStorage.setItem("ssb-sent", JSON.stringify(sent)); }catch(e){} }
+
+async function loadCommunity(){
+  if(!SHARED_ON) return;
+  try{
+    const r = await fetch(SUPA_URL + "/rest/v1/segnalazioni?select=place_id,criteri,commento,stelle,soprannome,created_at&stato=eq.approvata&order=created_at.desc&limit=2000", {headers: supaHeaders()});
+    if(!r.ok) throw new Error(r.status);
+    const rows = await r.json();
+    community = {};
+    rows.forEach(row=>{
+      const c = community[row.place_id] || (community[row.place_id] = {crit:{}, stars:[], comments:[]});
+      Object.entries(row.criteri||{}).forEach(([k,v])=>{
+        if(v!=="si" && v!=="no") return;
+        const x = c.crit[k] || (c.crit[k] = {si:0, no:0}); x[v]++;
+      });
+      if(row.stelle) c.stars.push(row.stelle);
+      if(row.commento) c.comments.push({t:row.commento, n:row.soprannome||"", d:row.created_at});
+    });
+    communityState = "ok";
+  }catch(e){ communityState = "error"; }
+  render();
+}
+
+async function sendReport(payload){
+  const r = await fetch(SUPA_URL + "/rest/v1/segnalazioni", {
+    method:"POST", headers: supaHeaders({"Prefer":"return=minimal"}), body: JSON.stringify(payload)
+  });
+  if(!r.ok) throw new Error(r.status);
+}
 
 const $ = s=>document.querySelector(s);
 const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -337,10 +392,19 @@ function filtered(){
 }
 
 function status(p, cId){
-  const r = reports[p.id]; if(r && r.crit && r.crit[cId]) return r.crit[cId];
-  return "nd";
+  const x = community[p.id] && community[p.id].crit[cId];
+  if(!x || (x.si===0 && x.no===0)) return {s:"nd", txt:"Da verificare"};
+  const tot = x.si + x.no;
+  const who = n => n===1 ? "1 persona" : n + " persone";
+  if(x.si > x.no) return {s:"si", txt:`Sì · ${who(x.si)} su ${tot}`};
+  if(x.no > x.si) return {s:"no", txt:`No · ${who(x.no)} su ${tot}`};
+  return {s:"misto", txt:`Pareri diversi (${x.si} sì, ${x.no} no)`};
 }
-const ST = {si:"Sì", no:"No", nd:"Da verificare"};
+function starsAvg(p){
+  const c = community[p.id]; if(!c || !c.stars.length) return null;
+  return {avg: c.stars.reduce((a,b)=>a+b,0)/c.stars.length, n: c.stars.length};
+}
+function starText(v){ return "★".repeat(Math.round(v)) + "☆".repeat(5-Math.round(v)); }
 
 function render(){
   const res = filtered();
@@ -350,7 +414,11 @@ function render(){
   res.forEach(p=>{
     const li = document.createElement("li");
     const disTxt = p.dis.length ? (p.dis.length===4 ? "Tutte le disabilità" : p.dis.map(d=>DIS.find(x=>x.id===d).label).join(", ")) : "Disabilità accolte: da verificare";
-    const rep = reports[p.id] ? `<span class="verif" style="color:var(--ok)">✓ Hai inviato una segnalazione</span>` : `<span class="verif" style="color:var(--unk)">Accessibilità da verificare</span>`;
+    const sa = starsAvg(p), cm = community[p.id];
+    const nRep = cm ? Math.max(cm.stars.length, cm.comments.length, ...Object.values(cm.crit).map(x=>x.si+x.no), 0) : 0;
+    const rep = nRep
+      ? `<span class="verif" style="color:var(--ok)">${sa?`<span aria-hidden="true">${starText(sa.avg)}</span> ${sa.avg.toFixed(1).replace(".",",")} · `:""}${nRep===1?"1 segnalazione":nRep+" segnalazioni"} della community</span>`
+      : `<span class="verif" style="color:var(--unk)">Accessibilità da verificare</span>`;
     li.innerHTML = `<button class="card" type="button" ${state.sel===p.id?'aria-current="true"':""}>
       <h3>${esc(p.name)}</h3>
       <span class="meta">${esc(p.kind)} · ${esc(p.addr)}</span>
@@ -408,44 +476,77 @@ function renderDetail(){
   const want = state.dis.size ? [...state.dis] : ALL;
   const crits = CRIT.filter(c=>c.dis.some(d=>want.includes(d)));
   const dest = encodeURIComponent(p.addr.replace(/\(.*?\)/g,"").trim());
-  const r = reports[p.id];
+  const sa = starsAvg(p), cm = community[p.id];
+  const comments = cm ? cm.comments.slice(0,5) : [];
+  const fmt = d => { try{ return new Date(d).toLocaleDateString("it-IT",{day:"numeric",month:"long",year:"numeric"}); }catch(e){ return ""; } };
+  const pending = sent[p.id];
   box.innerHTML = `
     <h2 id="dTitle" tabindex="-1">${esc(p.name)}</h2>
     <p class="meta">${esc(p.kind)} · ${esc(p.addr)}${p.approx?" · posizione indicativa":""}</p>
     <p>${esc(p.desc)}</p>
 
     <h3>È accessibile?</h3>
-    <ul class="crit">${crits.map(c=>{const s=status(p,c.id);return `<li><span>${esc(c.label)}</span><span class="st ${s}">${ST[s]}</span></li>`}).join("")}</ul>
-    ${r&&r.note?`<p class="thanks"><strong>La tua nota:</strong> ${esc(r.note)}</p>`:""}
+    ${sa?`<p class="rating"><span aria-hidden="true">${starText(sa.avg)}</span> <strong>${sa.avg.toFixed(1).replace(".",",")} su 5</strong> · ${sa.n===1?"1 voto":sa.n+" voti"}</p>`:""}
+    <ul class="crit">${crits.map(c=>{const st=status(p,c.id);return `<li><span>${esc(c.label)}</span><span class="st ${st.s}">${st.txt}</span></li>`}).join("")}</ul>
+    ${communityState==="error"?`<p class="note">Non riesco a caricare le segnalazioni della community. Controlla la connessione e riprova più tardi.</p>`:""}
+
+    ${comments.length?`<h3>Cosa dice chi ci è stato</h3>
+    <ul class="comments">${comments.map(c=>`<li><p>${esc(c.t)}</p><p class="note">${c.n?esc(c.n)+" · ":""}${fmt(c.d)}</p></li>`).join("")}</ul>`:""}
 
     <h3>Come arrivarci</h3>
-    <p>Percorso con i mezzi GTT, calcolato da Google Maps. Nella versione completa vedrai anche se le fermate e le stazioni della metro sono accessibili.</p>
+    <p>Percorso con i mezzi GTT, calcolato da Google Maps.</p>
     <div class="btns">
       <a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=transit" target="_blank" rel="noopener">Percorso con i mezzi</a>
       ${p.contact?`<span class="btn ghost" style="cursor:text">${esc(p.contact)}</span>`:""}
     </div>
 
-    <h3>Ci sei stato? Segnala com'è</h3>
-    <form class="rep" id="repForm">
+    <h3>Ci sei stato? Racconta com'è</h3>
+    ${!SHARED_ON ? `<p class="note">Le segnalazioni condivise stanno per arrivare: presto potrai raccontare com'è questo luogo a tutta la community.</p>` : `
+    ${pending?`<p class="thanks" role="status">Hai inviato una segnalazione per questo luogo: sarà visibile a tutti dopo l'approvazione.</p>`:""}
+    <form class="rep" id="repForm" novalidate>
+      <p class="note">La tua segnalazione sarà pubblica dopo l'approvazione. Non scrivere dati personali tuoi o di altre persone.</p>
       ${crits.map(c=>`<div class="row"><label for="r-${c.id}">${esc(c.label)}</label>
         <select id="r-${c.id}" name="${c.id}">
-          <option value="nd"${status(p,c.id)==="nd"?" selected":""}>Non so</option>
-          <option value="si"${status(p,c.id)==="si"?" selected":""}>Sì</option>
-          <option value="no"${status(p,c.id)==="no"?" selected":""}>No</option>
+          <option value="nd" selected>Non so</option>
+          <option value="si">Sì</option>
+          <option value="no">No</option>
         </select></div>`).join("")}
-      <label for="r-note">Note (facoltativo)</label>
-      <textarea id="r-note" name="note" placeholder="Es. la rampa è sul retro, chiedere all'ingresso">${r&&r.note?esc(r.note):""}</textarea>
-      <button class="btn" type="submit">Salva segnalazione</button>
-      <p class="note">Per ora la segnalazione resta solo sul tuo dispositivo.</p>
-    </form>
+      <fieldset class="stars"><legend>Come ti sei trovato? (facoltativo)</legend>
+        ${[1,2,3,4,5].map(v=>`<input type="radio" name="stelle" id="st-${v}" value="${v}"><label for="st-${v}"><span aria-hidden="true">${"★".repeat(v)}</span><span class="sr">${v} ${v===1?"stella":"stelle"}</span></label>`).join("")}
+      </fieldset>
+      <label for="r-note">Commento (facoltativo, massimo 500 caratteri)</label>
+      <textarea id="r-note" name="commento" maxlength="500" placeholder="Es. la rampa è sul retro, chiedere all'ingresso"></textarea>
+      <label for="r-nick">Il tuo soprannome (facoltativo)</label>
+      <input id="r-nick" name="soprannome" maxlength="40" autocomplete="nickname">
+      <div class="hp" aria-hidden="true"><label for="r-web">Lascia vuoto</label><input id="r-web" name="sito" tabindex="-1" autocomplete="off"></div>
+      <div class="consent"><input type="checkbox" name="ok" id="r-ok"><label for="r-ok">Ho letto l'<a href="info.html">informativa</a> e accetto che la segnalazione venga pubblicata dopo l'approvazione</label></div>
+      <p id="repMsg" role="status" class="note"></p>
+      <button class="btn" type="submit" id="repBtn">Invia segnalazione</button>
+    </form>`}
     <p class="note">Fonte: ${esc(p.src)}</p>`;
-  $("#repForm").addEventListener("submit",e=>{
+  const form = $("#repForm");
+  if(!form) return;
+  form.addEventListener("submit", async e=>{
     e.preventDefault();
-    const fd = new FormData(e.target); const crit={};
-    crits.forEach(c=>{ const v=fd.get(c.id); if(v!=="nd") crit[c.id]=v; });
-    reports[p.id] = {crit:{...(reports[p.id]?.crit||{}),...crit}, note:(fd.get("note")||"").trim()};
-    saveReports(); render();
-    const t=$("#dTitle"); if(t){ t.insertAdjacentHTML("afterend",'<p class="thanks" role="status">Grazie! Segnalazione salvata.</p>'); }
+    const fd = new FormData(form), msg = $("#repMsg"), btn = $("#repBtn");
+    if(fd.get("sito")) return;                                  // trappola anti-spam
+    const criteri = {};
+    crits.forEach(c=>{ const v = fd.get(c.id); if(v==="si" || v==="no") criteri[c.id] = v; });
+    const commento = (fd.get("commento")||"").trim().slice(0,500);
+    const stelle = parseInt(fd.get("stelle")||"0",10) || null;
+    const soprannome = (fd.get("soprannome")||"").trim().slice(0,40);
+    if(!Object.keys(criteri).length && !commento && !stelle){ msg.textContent = "Compila almeno una voce, un voto o un commento."; return; }
+    if(!fd.get("ok")){ msg.textContent = "Per inviare, conferma di aver letto l'informativa."; $("#r-ok").focus(); return; }
+    btn.disabled = true; msg.textContent = "Invio in corso…";
+    try{
+      await sendReport({place_id:p.id, criteri, commento: commento||null, stelle, soprannome: soprannome||null});
+      sent[p.id] = Date.now(); saveSent();
+      renderDetail();
+      const t = $("#dTitle"); if(t){ t.insertAdjacentHTML("afterend",'<p class="thanks" role="status">Grazie! La tua segnalazione è arrivata e sarà visibile a tutti dopo l\'approvazione.</p>'); }
+    }catch(err){
+      btn.disabled = false;
+      msg.textContent = "Invio non riuscito. Controlla la connessione e riprova.";
+    }
   });
 }
 
@@ -480,6 +581,7 @@ chip($("#fDis"), DIS, state.dis, true);
 chip($("#fSport"), SPORTS, state.sport, false);
 state.sel = "cip";
 render();
+loadCommunity();
 if("serviceWorker" in navigator && location.protocol==="https:"){
   navigator.serviceWorker.register("sw.js").catch(()=>{});
 }
