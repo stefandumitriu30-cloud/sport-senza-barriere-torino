@@ -1,6 +1,6 @@
-# Sport Senza Barriere Torino
+# Sport Senza Barriere Torino e provincia
 
-Web app per trovare dove fare sport a Torino con una disabilità (motoria, visiva, uditiva, intellettiva/relazionale): luoghi, accessibilità punto per punto, come arrivarci con i mezzi GTT e segnalazioni di chi ci è stato.
+Web app per trovare dove fare sport a Torino e provincia con una disabilità (motoria, visiva, uditiva, intellettiva/relazionale): luoghi, accessibilità punto per punto, come arrivarci con i mezzi GTT e segnalazioni di chi ci è stato.
 
 ## Stato
 Versione beta. I luoghi provengono da fonti pubbliche (Comune di Torino, Regione Piemonte, CIP Piemonte, Turismo Torino, stampa). I dati di accessibilità sono ancora da verificare sul posto; alcune posizioni sono indicative.

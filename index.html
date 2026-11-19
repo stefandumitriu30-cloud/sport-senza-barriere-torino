@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sport Senza Barriere Torino</title>
+<title>Sport Senza Barriere Torino e provincia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-<meta name="description" content="Dove fare sport a Torino con una disabilità: luoghi, accessibilità punto per punto e come arrivarci.">
+<meta name="description" content="Dove fare sport a Torino e provincia con una disabilità: luoghi, accessibilità punto per punto e come arrivarci.">
 <meta name="theme-color" content="#0b4fa8">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -127,7 +127,7 @@ footer{max-width:1200px;margin:0 auto;padding:8px 16px 32px;color:var(--muted);f
 <a class="skip" href="#risultati">Vai ai risultati</a>
 <header>
   <div class="top">
-    <h1>Sport Senza Barriere <span>Torino · dove fare sport, se è accessibile, come arrivarci</span></h1>
+    <h1>Sport Senza Barriere <span>Torino e provincia · dove fare sport, se è accessibile, come arrivarci</span></h1>
     <div class="a11y" role="group" aria-label="Opzioni di lettura">
       <button id="bigText" aria-pressed="false">Testo grande</button>
       <button id="hiCon" aria-pressed="false">Alto contrasto</button>
@@ -143,6 +143,10 @@ footer{max-width:1200px;margin:0 auto;padding:8px 16px 32px;color:var(--muted);f
       <fieldset>
         <legend>La mia disabilità</legend>
         <div class="chips" id="fDis"></div>
+      </fieldset>
+      <fieldset>
+        <legend><label for="fZona">Zona</label></legend>
+        <select id="fZona"></select>
       </fieldset>
       <fieldset>
         <legend>Sport</legend>
@@ -167,7 +171,7 @@ footer{max-width:1200px;margin:0 auto;padding:8px 16px 32px;color:var(--muted);f
   <section id="detail" class="panel" aria-live="polite" aria-labelledby="dTitle"></section>
 </main>
 <footer>
-  <p>Fonti dei luoghi: Comune di Torino (circoscrizioni 3 e 7), Regione Piemonte, Turismo Torino, disabili.com, Avvenire, Superabile. Criteri di accessibilità ispirati alle barriere segnalate dalle persone con disabilità: ingresso, spogliatoi, attrezzi, personale formato, trasporti.</p>
+  <p>Fonti dei luoghi: Comune di Torino (circoscrizioni 3, 4 e 7), Regione Piemonte (elenchi dei progetti sportivi per persone con disabilità), CIP Piemonte, Turismo Torino, disabili.com, Avvenire, Superabile, VareseNews. Alcune fonti risalgono al 2016–2017: verificare che le attività siano ancora attive. Criteri di accessibilità ispirati alle barriere segnalate dalle persone con disabilità: ingresso, spogliatoi, attrezzi, personale formato, trasporti.</p>
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
@@ -192,63 +196,100 @@ const CRIT = [
 ];
 
 // Luoghi reali da fonti pubbliche. Coordinate approssimative (prototipo).
+// Luoghi reali da fonti pubbliche. Coordinate approssimative.
 const PLACES = [
-  {id:"cip", name:"Comitato Paralimpico – Piemonte", kind:"Orientamento e corsi di avviamento",
+  // ---- Torino città ----
+  {id:"cip", comune:"Torino", name:"Comitato Paralimpico – Piemonte", kind:"Orientamento e corsi di avviamento",
    addr:"Via Giordano Bruno 191, Torino", lat:45.031, lon:7.648, sports:["multisport"], dis:ALL,
-   desc:"Ente che coordina lo sport paralimpico in Piemonte. Organizza corsi di avviamento alle discipline paralimpiche per chi non è ancora tesserato. Buon punto di partenza per capire quale sport fa per te.",
+   desc:"Ente che coordina lo sport paralimpico in Piemonte. Organizza corsi di avviamento alle discipline paralimpiche per chi non è ancora tesserato. Buon punto di partenza per capire quale sport fa per te, anche in provincia.",
    src:"Regione Piemonte; CIP Piemonte, avviso corsi 2026", contact:"piemonte@comitatoparalimpico.it"},
-  {id:"nuoto3", name:"Nuoto per persone con disabilità – Circoscrizione 3", kind:"Progetto di associazioni con il Comune",
+  {id:"hbtorino", comune:"Torino", name:"Handibasket Torino (HB Torino UICEP)", kind:"Squadra di basket in carrozzina",
+   addr:"Via Cavalli 38, Torino (sede)", lat:45.075, lon:7.651, approx:true, sports:["basket"], dis:["motoria"],
+   desc:"Associazione Sport Disabili Handibasket Torino. Squadra che gioca nel campionato italiano di Serie B di basket in carrozzina. In passato le partite casalinghe si giocavano nella palestra di via Moncrivello 8: da confermare.",
+   src:"Regione Piemonte; disabili.com; VareseNews"},
+  {id:"sportdipiu", comune:"Torino", name:"Sportdipiù – Associazione Sport Disabili Piemonte", kind:"Associazione sportiva",
+   addr:"Via Cernaia 24, Torino (sede)", lat:45.0705, lon:7.672, sports:["hockey","multisport"], dis:["motoria"],
+   desc:"Associazione torinese impegnata nella diffusione del para ice hockey e dello sport per persone con disabilità.",
+   src:"Regione Piemonte; Avvenire"},
+  {id:"nuoto3", comune:"Torino", name:"Nuoto per persone con disabilità – Circoscrizione 3", kind:"Progetto di associazioni con il Comune",
    addr:"Circoscrizione 3 (San Paolo, Cenisia, Pozzo Strada, Cit Turin, Borgata Lesna)", lat:45.066, lon:7.640, approx:true, sports:["nuoto"], dis:ALL,
    desc:"Rete di associazioni Pandha, Fuori Onda, Paideia e Senza Limiti con l'Assessorato allo Sport. Circa 400 partecipanti, alcuni atleti agonisti. Piscina esatta da confermare.",
    src:"Comune di Torino, Circoscrizione 3"},
-  {id:"acli", name:"US Acli Torino – \"Sport per tutti secondo ciascuno\"", kind:"Progetto sportivo, Circoscrizione 7",
+  {id:"acli", comune:"Torino", name:"US Acli Torino – \"Sport per tutti secondo ciascuno\"", kind:"Progetto sportivo, Circoscrizione 7",
    addr:"Via Perrone 3 bis, Torino (sede)", lat:45.0725, lon:7.6705, sports:["multisport"], dis:["motoria","intellettiva"],
    desc:"Progetto finanziato dalla Circoscrizione 7 nel 2026 per persone con disabilità fisica e intellettiva. Massimo 20 partecipanti.",
    src:"Comune di Torino, Circoscrizione 7, 2026"},
-  {id:"giuco", name:"GiuCo '97", kind:"Associazione sportiva",
+  {id:"acli-nuoto", comune:"Torino", name:"US Acli Torino – nuoto alla Piscina Franzoj", kind:"Corso di nuoto, Circoscrizione 4",
+   addr:"Piscina Franzoj, Torino (Circoscrizione 4)", lat:45.084, lon:7.628, approx:true, sports:["nuoto"], dis:ALL,
+   desc:"Inserimento di persone con disabilità nelle attività di nuoto, stagione ottobre 2025 – maggio 2026. Posti limitati (circa 5 persone).",
+   src:"Comune di Torino, Circoscrizione 4"},
+  {id:"giuco", comune:"Torino", name:"GiuCo '97", kind:"Associazione sportiva",
    addr:"Zona Porta Palazzo, Torino", lat:45.079, lon:7.683, approx:true, sports:["calcio","multisport"], dis:ALL,
    desc:"Associazione ispirata al Cottolengo con la missione di permettere a tutti di fare sport.",
    src:"Avvenire"},
-  {id:"insuperabili", name:"Insuperabili", kind:"Scuole calcio inclusive",
+  {id:"insuperabili", comune:"Torino", name:"Insuperabili", kind:"Scuole calcio inclusive",
    addr:"Torino (sedi da confermare)", sports:["calcio"], dis:ALL,
    desc:"Nata a Torino, fa giocare a calcio bambini, ragazzi e adulti con disabilità fisico-motoria, cognitivo-relazionale, comportamentale e sensoriale.",
    src:"Superabile (INAIL)"},
-  {id:"sportdipiu", name:"Sportdipiù", kind:"Associazione sport per persone con disabilità",
-   addr:"Torino (sede da confermare)", sports:["hockey"], dis:["motoria"],
-   desc:"Associazione torinese impegnata nella diffusione del para ice hockey e dello sport per persone con disabilità.",
-   src:"Avvenire"},
-  {id:"paideia", name:"Bike sharing accessibile – Fondazione Paideia", kind:"Biciclette adattate",
+  {id:"paideia", comune:"Torino", name:"Bike sharing accessibile – Fondazione Paideia", kind:"Biciclette adattate",
    addr:"Lungo il Po, Torino (punto esatto da confermare)", lat:45.054, lon:7.686, approx:true, sports:["ciclismo"], dis:ALL,
    desc:"Biciclette adattate per bambini e famiglie con disabilità sui percorsi ciclabili della città. Volontari e istruttori di Paideia Sport aiutano a scegliere la bici adatta.",
    src:"disabili.com"},
-  {id:"cus", name:"CUS Torino", kind:"Centro universitario sportivo",
+  {id:"cus", comune:"Torino", name:"CUS Torino", kind:"Centro universitario sportivo",
    addr:"Via Paolo Braccini 1, Torino", lat:45.064, lon:7.656, sports:["multisport"], dis:[],
    desc:"Segnalato da Turismo Torino tra le realtà di sport accessibile. Discipline adattate da verificare.",
    src:"Turismo Torino"},
-  {id:"asti", name:"Palazzetto dello Sport Gianni Asti", kind:"Impianto comunale",
+  {id:"asti", comune:"Torino", name:"Palazzetto dello Sport Gianni Asti", kind:"Impianto comunale",
    addr:"Parco Ruffini, Torino", lat:45.0597, lon:7.6418, sports:["multisport"], dis:[],
    desc:"Impianto gestito direttamente dalla Città. Accessibilità non ancora rilevata.",
    src:"Città di Torino, impianti sportivi"},
-  {id:"nebiolo", name:"Stadio di Atletica Primo Nebiolo", kind:"Impianto comunale",
+  {id:"nebiolo", comune:"Torino", name:"Stadio di Atletica Primo Nebiolo", kind:"Impianto comunale",
    addr:"Parco Ruffini, Torino", lat:45.0578, lon:7.6455, sports:["atletica"], dis:[],
    desc:"Impianto gestito direttamente dalla Città. Accessibilità non ancora rilevata.",
    src:"Città di Torino, impianti sportivi"},
-  {id:"monumentale", name:"Piscina Stadio Monumentale", kind:"Impianto comunale",
+  {id:"monumentale", comune:"Torino", name:"Piscina Stadio Monumentale", kind:"Impianto comunale",
    addr:"Zona Stadio Olimpico, Torino", lat:45.043, lon:7.649, approx:true, sports:["nuoto"], dis:[],
    desc:"Impianto gestito direttamente dalla Città. Accessibilità non ancora rilevata.",
    src:"Città di Torino, impianti sportivi"},
-  {id:"tazzoli", name:"Palazzo del Ghiaccio Tazzoli", kind:"Impianto comunale",
+  {id:"tazzoli", comune:"Torino", name:"Palazzo del Ghiaccio Tazzoli", kind:"Impianto comunale",
    addr:"Via San Remo, Torino", lat:45.035, lon:7.624, approx:true, sports:["hockey"], dis:[],
    desc:"Impianto gestito direttamente dalla Città. Accessibilità non ancora rilevata.",
-   src:"Città di Torino, impianti sportivi"}
+   src:"Città di Torino, impianti sportivi"},
+  // ---- Provincia ----
+  {id:"freewhite", comune:"Sestriere", name:"Freewhite – Sestriere Sport Disabili", kind:"Scuola di sci adattato",
+   addr:"Via Pinerolo 17, Sestriere", lat:44.957, lon:6.880, sports:["sci"], dis:ALL,
+   desc:"Corsi di sci alpino sitting (monosci) e standing, anche gratuiti di avviamento, per persone con disabilità fisico-motoria anche grave, dai 6 ai 65 anni. Anche snowboard e corsi di perfezionamento. Attività stagionale, da dicembre.",
+   src:"Regione Piemonte; disabili.com"},
+  {id:"assam", comune:"Chieri", name:"ASD A.S.S.A.M. – \"Diversamente sport\"", kind:"Associazione sportiva",
+   addr:"Via Monginevro 2, Chieri", lat:45.010, lon:7.818, approx:true, sports:["multisport"], dis:[],
+   desc:"Progetto sportivo per persone con disabilità finanziato dalla Regione Piemonte (elenco 2016). Verificare se l'attività è ancora attiva e per quali disabilità.",
+   src:"Regione Piemonte, progetti disabili 2016"},
+  {id:"judochieri", comune:"Chieri", name:"Arti marziali Jigoro Kano – \"Buon Judo a tutti\"", kind:"Judo adattato",
+   addr:"Via Vittorio Emanuele 63, Chieri", lat:45.012, lon:7.824, approx:true, sports:["judo"], dis:[],
+   desc:"Progetto di judo per persone con disabilità finanziato dalla Regione Piemonte (elenco 2017). Verificare se l'attività è ancora attiva.",
+   src:"Regione Piemonte, progetti disabili 2017"},
+  {id:"sottosotto", comune:"San Mauro Torinese", name:"ASD Sotto sotto – \"Un'esperienza di apnea\"", kind:"Apnea e attività subacquee",
+   addr:"Via Bartolomeo Elia 8/a, San Mauro Torinese", lat:45.103, lon:7.766, approx:true, sports:["acqua"], dis:[],
+   desc:"Progetto di apnea per persone con disabilità finanziato dalla Regione Piemonte (elenco 2017). Verificare se l'attività è ancora attiva.",
+   src:"Regione Piemonte, progetti disabili 2017"},
+  {id:"pagaiando", comune:"Moncalieri", name:"\"Pagaiando al buio\" – canoa per persone cieche", kind:"Progetto di canoa",
+   addr:"Moncalieri (associazione e luogo da confermare)", lat:44.999, lon:7.683, approx:true, sports:["canoa"], dis:["visiva"],
+   desc:"Progetto di canoa per persone cieche e ipovedenti finanziato dalla Regione Piemonte (elenco 2017). Nome dell'associazione e luogo da confermare.",
+   src:"Regione Piemonte, progetti disabili 2017"},
+  {id:"nessunoescluso", comune:"Villafranca Piemonte", name:"Nessuno escluso ASD", kind:"Equitazione e riabilitazione equestre",
+   addr:"Frazione San Luca 27, Villafranca Piemonte", lat:44.780, lon:7.500, approx:true, sports:["equitazione"], dis:["intellettiva"],
+   desc:"Percorso di riabilitazione equestre per bambini con autismo insieme a bambini senza disabilità (progetto regionale, elenco 2017). Verificare se l'attività è ancora attiva.",
+   src:"Regione Piemonte, progetti disabili 2017"}
 ];
 
 const SPORTS = [
-  {id:"nuoto",label:"Nuoto"},{id:"calcio",label:"Calcio"},{id:"atletica",label:"Atletica"},
-  {id:"ciclismo",label:"Ciclismo"},{id:"hockey",label:"Hockey su ghiaccio"},{id:"multisport",label:"Più sport"}
+  {id:"nuoto",label:"Nuoto"},{id:"calcio",label:"Calcio"},{id:"basket",label:"Basket in carrozzina"},
+  {id:"atletica",label:"Atletica"},{id:"ciclismo",label:"Ciclismo"},{id:"sci",label:"Sci"},
+  {id:"hockey",label:"Hockey su ghiaccio"},{id:"judo",label:"Judo"},{id:"canoa",label:"Canoa"},
+  {id:"acqua",label:"Apnea"},{id:"equitazione",label:"Equitazione"},{id:"multisport",label:"Più sport"}
 ];
 
-const state = {dis:new Set(), sport:new Set(), sel:null, view:"list"};
+const state = {dis:new Set(), sport:new Set(), zona:"", sel:null, view:"list"};
 let reports = {};
 try{ reports = JSON.parse(localStorage.getItem("ssb-reports")||"{}"); }catch(e){ reports = {}; }
 function saveReports(){ try{ localStorage.setItem("ssb-reports", JSON.stringify(reports)); }catch(e){} }
@@ -269,6 +310,8 @@ function chip(container, items, set, withIco){
 
 function filtered(){
   return PLACES.filter(p=>{
+    if(state.zona==="provincia" && p.comune==="Torino") return false;
+    if(state.zona && state.zona!=="provincia" && p.comune!==state.zona) return false;
     if(state.sport.size && !p.sports.some(s=>state.sport.has(s))) return false;
     if(state.dis.size){
       // impianti con accessibilità non rilevata restano visibili, segnalati come "da verificare"
@@ -306,10 +349,10 @@ function render(){
 }
 
 // Mappa reale (Leaflet + OpenStreetMap). Se la mappa non carica (offline), resta l'elenco.
-let map=null, layer=null;
+let map=null, layer=null, lastFit="";
 function initMap(){
   if(map || typeof L==="undefined") return;
-  map = L.map("map",{scrollWheelZoom:false}).setView([45.062,7.668],13);
+  map = L.map("map",{scrollWheelZoom:false}).setView([45.062,7.668],10);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,
     attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
   layer = L.layerGroup().addTo(map);
@@ -317,6 +360,9 @@ function initMap(){
 function drawMap(res){
   if(!map) return;
   layer.clearLayers();
+  const pts=res.filter(p=>p.lat).map(p=>[p.lat,p.lon]);
+  const key=pts.join("|");
+  if(pts.length && key!==lastFit){ lastFit=key; map.fitBounds(pts,{padding:[30,30],maxZoom:14}); }
   res.filter(p=>p.lat).forEach(p=>{
     const sel = state.sel===p.id;
     const m = L.marker([p.lat,p.lon],{
@@ -408,6 +454,13 @@ function toggle(btn, cls, key){
   try{ if(localStorage.getItem(k)==="1"){ document.documentElement.classList.add(c); b.setAttribute("aria-pressed","true"); } }catch(e){}
 });
 
+(function(){
+  const sel=$("#fZona");
+  const comuni=[...new Set(PLACES.map(p=>p.comune))].filter(c=>c!=="Torino").sort((a,b)=>a.localeCompare(b,"it"));
+  sel.innerHTML='<option value="">Torino e provincia</option><option value="Torino">Solo Torino città</option><option value="provincia">Solo provincia</option>'+
+    comuni.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  sel.onchange=()=>{ state.zona=sel.value; render(); };
+})();
 chip($("#fDis"), DIS, state.dis, true);
 chip($("#fSport"), SPORTS, state.sport, false);
 state.sel = "cip";
