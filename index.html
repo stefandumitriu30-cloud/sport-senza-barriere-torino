@@ -146,6 +146,8 @@ fieldset.stars input:focus-visible+label{outline:3px solid var(--mark);outline-o
 form.rep input[type=text],form.rep input:not([type]){font:inherit;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:8px;padding:.35em .5em;min-height:44px}
 .consent{display:flex;gap:8px;align-items:flex-start}
 .consent input{width:22px;height:22px;margin-top:3px;flex:none}
+.formmsg{margin:0;padding:10px 14px;border-radius:8px;border:2px solid var(--no);border-left-width:8px;background:color-mix(in srgb,var(--no) 10%,var(--surface));color:var(--ink);font-weight:700}
+.formmsg.info{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface));font-weight:400}
 .thanks{background:var(--bg);border-left:6px solid var(--ok);padding:8px 12px}
 .empty{padding:20px;text-align:center;color:var(--muted)}
 footer{max-width:1200px;margin:0 auto;padding:8px 16px 32px;color:var(--muted);font-size:.85em}
@@ -524,7 +526,7 @@ function renderDetail(){
       <input id="r-nick" name="soprannome" maxlength="40" autocomplete="nickname">
       <div class="hp" aria-hidden="true"><label for="r-web">Lascia vuoto</label><input id="r-web" name="sito" tabindex="-1" autocomplete="off"></div>
       <div class="consent"><input type="checkbox" name="ok" id="r-ok"><label for="r-ok">Ho letto l'<a href="info.html">informativa</a> e accetto che la segnalazione venga pubblicata</label></div>
-      <p id="repMsg" role="status" class="note"></p>
+      <p id="repMsg" role="alert" class="formmsg" hidden></p>
       <button class="btn" type="submit" id="repBtn">Invia segnalazione</button>
     </form>`}
     <p class="note">Fonte: ${esc(p.src)}</p>`;
@@ -532,7 +534,8 @@ function renderDetail(){
   if(!form) return;
   form.addEventListener("submit", async e=>{
     e.preventDefault();
-    const fd = new FormData(form), msg = $("#repMsg"), btn = $("#repBtn");
+    const fd = new FormData(form), btn = $("#repBtn"), box = $("#repMsg");
+    const msg = { set textContent(t){ box.textContent = t; box.hidden = !t; box.classList.toggle("info", t === "Invio in corso…"); } };
     if(fd.get("sito")) return;                                  // trappola anti-spam
     const criteri = {};
     crits.forEach(c=>{ const v = fd.get(c.id); if(v==="si" || v==="no") criteri[c.id] = v; });
