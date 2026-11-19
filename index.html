@@ -502,9 +502,9 @@ function renderDetail(){
 
     <h3>Ci sei stato? Racconta com'è</h3>
     ${!SHARED_ON ? `<p class="note">Le segnalazioni condivise stanno per arrivare: presto potrai raccontare com'è questo luogo a tutta la community.</p>` : `
-    ${pending?`<p class="thanks" role="status">Hai inviato una segnalazione per questo luogo: sarà visibile a tutti dopo l'approvazione.</p>`:""}
+    ${pending?`<p class="thanks" role="status">Hai già inviato una segnalazione per questo luogo. Grazie!</p>`:""}
     <form class="rep" id="repForm" novalidate>
-      <p class="note">La tua segnalazione sarà pubblica dopo l'approvazione. Non scrivere dati personali tuoi o di altre persone.</p>
+      <p class="note">La tua segnalazione sarà visibile subito a tutti. Non scrivere dati personali tuoi o di altre persone: i messaggi con link, numeri di telefono o parole offensive vengono controllati prima di essere pubblicati.</p>
       ${crits.map(c=>`<div class="row"><label for="r-${c.id}">${esc(c.label)}</label>
         <select id="r-${c.id}" name="${c.id}">
           <option value="nd" selected>Non so</option>
@@ -519,7 +519,7 @@ function renderDetail(){
       <label for="r-nick">Il tuo soprannome (facoltativo)</label>
       <input id="r-nick" name="soprannome" maxlength="40" autocomplete="nickname">
       <div class="hp" aria-hidden="true"><label for="r-web">Lascia vuoto</label><input id="r-web" name="sito" tabindex="-1" autocomplete="off"></div>
-      <div class="consent"><input type="checkbox" name="ok" id="r-ok"><label for="r-ok">Ho letto l'<a href="info.html">informativa</a> e accetto che la segnalazione venga pubblicata dopo l'approvazione</label></div>
+      <div class="consent"><input type="checkbox" name="ok" id="r-ok"><label for="r-ok">Ho letto l'<a href="info.html">informativa</a> e accetto che la segnalazione venga pubblicata</label></div>
       <p id="repMsg" role="status" class="note"></p>
       <button class="btn" type="submit" id="repBtn">Invia segnalazione</button>
     </form>`}
@@ -541,11 +541,11 @@ function renderDetail(){
     try{
       await sendReport({place_id:p.id, criteri, commento: commento||null, stelle, soprannome: soprannome||null});
       sent[p.id] = Date.now(); saveSent();
-      renderDetail();
-      const t = $("#dTitle"); if(t){ t.insertAdjacentHTML("afterend",'<p class="thanks" role="status">Grazie! La tua segnalazione è arrivata e sarà visibile a tutti dopo l\'approvazione.</p>'); }
+      await loadCommunity();
+      const t = $("#dTitle"); if(t){ t.insertAdjacentHTML("afterend",'<p class="thanks" role="status">Grazie! La tua segnalazione è pubblicata. Se contiene link, numeri di telefono o parole offensive, comparirà dopo un controllo.</p>'); }
     }catch(err){
       btn.disabled = false;
-      msg.textContent = "Invio non riuscito. Controlla la connessione e riprova.";
+      msg.textContent = "Invio non riuscito. Controlla la connessione e riprova tra qualche minuto.";
     }
   });
 }

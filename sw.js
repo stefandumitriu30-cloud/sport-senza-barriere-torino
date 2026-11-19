@@ -1,5 +1,5 @@
 // Service worker: l'app si apre anche senza connessione (la mappa richiede internet).
-const CACHE = "ssb-v7";
+const CACHE = "ssb-v8";
 const SHELL = ["./", "index.html", "info.html", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png",
   "fonts.css", "atkinson-hyperlegible-latin-400-normal.woff2", "atkinson-hyperlegible-latin-700-normal.woff2",
   "leaflet.css", "leaflet.js"];
