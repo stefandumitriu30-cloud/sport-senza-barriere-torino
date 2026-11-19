@@ -1,5 +1,5 @@
 // Service worker: l'app si apre anche senza connessione (la mappa richiede internet).
-const CACHE = "ssb-v2";
+const CACHE = "ssb-v3";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => {

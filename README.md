@@ -1,4 +1,6 @@
-# Sport Senza Barriere Torino e provincia
+# Sport Aperto – Torino e provincia
+
+Sito: https://sportaperto.com
 
 Web app per trovare dove fare sport a Torino e provincia con una disabilità (motoria, visiva, uditiva, intellettiva/relazionale): luoghi, accessibilità punto per punto, come arrivarci con i mezzi GTT e segnalazioni di chi ci è stato.
 
