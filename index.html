@@ -361,7 +361,11 @@ async function sendReport(payload){
   const r = await fetch(SUPA_URL + "/rest/v1/segnalazioni", {
     method:"POST", headers: supaHeaders({"Prefer":"return=minimal"}), body: JSON.stringify(payload)
   });
-  if(!r.ok) throw new Error(r.status);
+  if(!r.ok){
+    let code = String(r.status);
+    try{ const j = await r.json(); code = j.message || code; }catch(e){}
+    throw new Error(code);
+  }
 }
 
 const $ = s=>document.querySelector(s);
@@ -504,7 +508,7 @@ function renderDetail(){
     ${!SHARED_ON ? `<p class="note">Le segnalazioni condivise stanno per arrivare: presto potrai raccontare com'è questo luogo a tutta la community.</p>` : `
     ${pending?`<p class="thanks" role="status">Hai già inviato una segnalazione per questo luogo. Grazie!</p>`:""}
     <form class="rep" id="repForm" novalidate>
-      <p class="note">La tua segnalazione sarà visibile subito a tutti. Non scrivere dati personali tuoi o di altre persone: i messaggi con link, numeri di telefono o parole offensive vengono controllati prima di essere pubblicati.</p>
+      <p class="note">La tua segnalazione sarà visibile subito a tutti. Non scrivere dati personali tuoi o di altre persone: parole volgari, offensive o con riferimenti sessuali non sono permesse in nessuna lingua; i messaggi con link o numeri di telefono vengono controllati prima di essere pubblicati.</p>
       ${crits.map(c=>`<div class="row"><label for="r-${c.id}">${esc(c.label)}</label>
         <select id="r-${c.id}" name="${c.id}">
           <option value="nd" selected>Non so</option>
@@ -542,10 +546,18 @@ function renderDetail(){
       await sendReport({place_id:p.id, criteri, commento: commento||null, stelle, soprannome: soprannome||null});
       sent[p.id] = Date.now(); saveSent();
       await loadCommunity();
-      const t = $("#dTitle"); if(t){ t.insertAdjacentHTML("afterend",'<p class="thanks" role="status">Grazie! La tua segnalazione è pubblicata. Se contiene link, numeri di telefono o parole offensive, comparirà dopo un controllo.</p>'); }
+      const t = $("#dTitle"); if(t){ t.insertAdjacentHTML("afterend",'<p class="thanks" role="status">Grazie! La tua segnalazione è pubblicata. Se contiene link o numeri di telefono, comparirà dopo un controllo.</p>'); }
     }catch(err){
       btn.disabled = false;
-      msg.textContent = "Invio non riuscito. Controlla la connessione e riprova tra qualche minuto.";
+      const m = String(err && err.message || "");
+      if(m.includes("PAROLE_NON_CONSENTITE")){
+        msg.textContent = "Il testo contiene parole volgari, offensive o con riferimenti sessuali, che su Sport Aperto non sono permesse. Modifica il commento o il soprannome e riprova.";
+        const f = $("#r-note"); if(f) f.focus();
+      }else if(m.includes("TROPPE_SEGNALAZIONI")){
+        msg.textContent = "In questo momento arrivano troppe segnalazioni. Riprova tra qualche minuto.";
+      }else{
+        msg.textContent = "Invio non riuscito. Controlla la connessione e riprova tra qualche minuto.";
+      }
     }
   });
 }
