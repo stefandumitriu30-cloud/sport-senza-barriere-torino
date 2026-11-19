@@ -15,6 +15,9 @@ Versione beta. I luoghi provengono da fonti pubbliche (Comune di Torino, Regione
 - PWA: `manifest.webmanifest` e `sw.js` permettono di installarla sul telefono e aprirla anche offline.
 - Pubblicata con GitHub Pages.
 
+## Sicurezza
+Content Security Policy rigorosa (nessuno script o stile in linea, nessuna risorsa esterna tranne le tessere della mappa), protezione dall'inserimento in altri siti, testi degli utenti sempre trattati come testo. Database Supabase con Row Level Security, permessi minimi, validazione dei dati, limiti di invio per utente e filtro dei contenuti (vedi i file supabase*.sql).
+
 ## Accessibilità
 Carattere Atkinson Hyperlegible, testo grande, alto contrasto, tema scuro automatico, navigazione completa da tastiera e con lettori di schermo.
 

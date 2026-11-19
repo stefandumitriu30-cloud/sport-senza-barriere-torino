@@ -1,0 +1,133 @@
+/* Layout: app mobile-first a una colonna; su schermi larghi elenco a sinistra, scheda a destra.
+   Font Atkinson Hyperlegible: progettato per persone ipovedenti. */
+:root{
+  --bg:#f4f6f9;
+  --surface:#ffffff;
+  --ink:#0f1b2d;
+  --muted:#4a5568;
+  --line:#c9d1dc;
+  --accent:#0b4fa8;      /* blu Torino */
+  --accent-ink:#ffffff;
+  --mark:#ffcf33;        /* giallo segnaletica */
+  --ok:#1b7a3a; --no:#b42318; --unk:#6b7280;
+  --display:"Atkinson Hyperlegible", "Verdana", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Verdana", system-ui, sans-serif;
+  --fs:1.0625rem;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1320; --surface:#152033; --ink:#eef2f8; --muted:#b4bfcf; --line:#33435c;
+    --accent:#5aa2ff; --accent-ink:#06111f; --mark:#ffd84d;
+    --ok:#4ade80; --no:#ff7a6e; --unk:#9aa4b2; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1320; --surface:#152033; --ink:#eef2f8; --muted:#b4bfcf; --line:#33435c;
+  --accent:#5aa2ff; --accent-ink:#06111f; --mark:#ffd84d;
+  --ok:#4ade80; --no:#ff7a6e; --unk:#9aa4b2; color-scheme:dark;
+}
+/* Modalità alto contrasto scelta dall'utente */
+html.hc{
+  --bg:#000; --surface:#000; --ink:#fff; --muted:#fff; --line:#fff;
+  --accent:#ffef00; --accent-ink:#000; --mark:#ffef00;
+  --ok:#7CFF7C; --no:#ff8a8a; --unk:#ffffff; color-scheme:dark;
+}
+html.big{ --fs:1.3rem; }
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:var(--fs);line-height:1.5}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--mark);outline-offset:2px;box-shadow:0 0 0 6px var(--ink)}
+.skip{position:absolute;left:-9999px;top:0;background:var(--mark);color:#000;padding:.6em 1em;font-weight:700;z-index:10}
+.skip:focus{left:8px;top:8px}
+
+header{background:var(--accent);color:var(--accent-ink);padding:14px 16px}
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto}
+h1{font-family:var(--display);font-size:1.45em;margin:0;line-height:1.15;text-wrap:balance}
+h1 span{display:block;font-size:.6em;font-weight:400;opacity:.9}
+.a11y{display:flex;gap:8px;flex-wrap:wrap}
+.a11y button{font:inherit;font-size:.85em;font-weight:700;border:2px solid currentColor;background:transparent;color:inherit;border-radius:8px;padding:.35em .7em;cursor:pointer;min-height:44px}
+.a11y .infolink{font-size:.85em;font-weight:700;color:inherit;border:2px solid currentColor;border-radius:8px;padding:.35em .7em;min-height:44px;display:inline-flex;align-items:center;text-decoration:none}
+.a11y button[aria-pressed="true"]{background:var(--accent-ink);color:var(--accent)}
+
+.proto{background:var(--mark);color:#000;padding:8px 16px;font-size:.9em}
+.proto p{max-width:1200px;margin:0 auto}
+
+main{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:16px}
+@media (min-width:900px){ main{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:start} #detail{position:sticky;top:16px} }
+
+fieldset{border:0;padding:0;margin:0 0 12px}
+legend{font-weight:700;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:.95em;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:.35em .9em;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;gap:.4em}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.chip .ico{font-weight:700}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.tabs{display:flex;gap:8px;margin:4px 0 12px}
+.tabs button{flex:1;font:inherit;font-weight:700;padding:.55em;border:2px solid var(--accent);background:var(--surface);color:var(--accent);border-radius:8px;cursor:pointer;min-height:44px}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.count{color:var(--muted);margin:0 0 8px}
+
+ul.list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.card{width:100%;text-align:left;font:inherit;color:inherit;background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;display:grid;gap:4px}
+.card:hover{border-color:var(--accent)}
+.card[aria-current="true"]{border-color:var(--accent);box-shadow:inset 6px 0 0 var(--accent)}
+.card h3{margin:0;font-size:1.05em}
+.meta{color:var(--muted);font-size:.9em}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tag{font-size:.8em;border:1px solid var(--line);border-radius:6px;padding:.05em .45em}
+.verif{font-size:.8em;font-weight:700}
+
+.map{width:100%;height:420px;border-radius:10px;border:1px solid var(--line);z-index:0}
+.pin{width:26px;height:26px;border-radius:50%;background:#0b4fa8;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+.pin.sel{background:#ffcf33;border-color:#0f1b2d;width:32px;height:32px}
+.leaflet-marker-icon:focus-visible{outline:3px solid #ffcf33;outline-offset:2px}
+.leaflet-container{font-family:var(--body)}
+.note{font-size:.85em;color:var(--muted)}
+
+#detail h2{margin:0 0 4px;font-size:1.3em;text-wrap:balance}
+#detail h3{font-size:1em;margin:18px 0 8px}
+.crit{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.crit li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:6px 0}
+.st{font-weight:700;white-space:nowrap}
+.st.si{color:var(--ok)} .st.no{color:var(--no)} .st.nd{color:var(--unk)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn{font:inherit;font-weight:700;display:inline-flex;align-items:center;min-height:44px;padding:.45em .9em;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);text-decoration:none;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+form.rep{display:grid;gap:10px;margin-top:8px}
+form.rep .row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:8px;padding:.35em .5em;min-height:44px}
+textarea{width:100%;min-height:80px}
+.st.misto{color:var(--unk)}
+.rating{margin:0 0 8px;font-size:1.05em}
+.rating span,.verif span{color:#b7791f;letter-spacing:1px}
+ul.comments{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+ul.comments li{border-left:4px solid var(--accent);padding:4px 12px;background:var(--bg);border-radius:6px}
+ul.comments p{margin:2px 0}
+fieldset.stars{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+fieldset.stars input{position:absolute;opacity:0;width:1px;height:1px}
+fieldset.stars label{border:2px solid var(--line);border-radius:8px;padding:.3em .6em;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;color:#b7791f}
+fieldset.stars input:checked+label{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+fieldset.stars input:focus-visible+label{outline:3px solid var(--mark);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+form.rep input[type=text],form.rep input:not([type]){font:inherit;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:8px;padding:.35em .5em;min-height:44px}
+.consent{display:flex;gap:8px;align-items:flex-start}
+.consent input{width:22px;height:22px;margin-top:3px;flex:none}
+.formmsg{margin:0;padding:10px 14px;border-radius:8px;border:2px solid var(--no);border-left-width:8px;background:color-mix(in srgb,var(--no) 10%,var(--surface));color:var(--ink);font-weight:700}
+.formmsg.info{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface));font-weight:400}
+.thanks{background:var(--bg);border-left:6px solid var(--ok);padding:8px 12px}
+.empty{padding:20px;text-align:center;color:var(--muted)}
+footer{max-width:1200px;margin:0 auto;padding:8px 16px 32px;color:var(--muted);font-size:.85em}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+
+/* classi al posto degli stili in linea (richiesto dalla Content Security Policy) */
+.proto a{color:#000}
+.h-cerca{margin:0 0 10px;font-size:1.1em}
+.panel.mt{margin-top:16px}
+.verif.ok{color:var(--ok)}
+.verif.unk{color:var(--unk)}
+.btn.static{cursor:text}
