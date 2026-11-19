@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sport Senza Barriere Torino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<meta name="description" content="Dove fare sport a Torino con una disabilità: luoghi, accessibilità punto per punto e come arrivarci.">
+<meta name="theme-color" content="#0b4fa8">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+/* Layout: app mobile-first a una colonna; su schermi larghi elenco a sinistra, scheda a destra.
+   Font Atkinson Hyperlegible: progettato per persone ipovedenti. */
+:root{
+  --bg:#f4f6f9;
+  --surface:#ffffff;
+  --ink:#0f1b2d;
+  --muted:#4a5568;
+  --line:#c9d1dc;
+  --accent:#0b4fa8;      /* blu Torino */
+  --accent-ink:#ffffff;
+  --mark:#ffcf33;        /* giallo segnaletica */
+  --ok:#1b7a3a; --no:#b42318; --unk:#6b7280;
+  --display:"Atkinson Hyperlegible", "Verdana", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Verdana", system-ui, sans-serif;
+  --fs:1.0625rem;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1320; --surface:#152033; --ink:#eef2f8; --muted:#b4bfcf; --line:#33435c;
+    --accent:#5aa2ff; --accent-ink:#06111f; --mark:#ffd84d;
+    --ok:#4ade80; --no:#ff7a6e; --unk:#9aa4b2; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1320; --surface:#152033; --ink:#eef2f8; --muted:#b4bfcf; --line:#33435c;
+  --accent:#5aa2ff; --accent-ink:#06111f; --mark:#ffd84d;
+  --ok:#4ade80; --no:#ff7a6e; --unk:#9aa4b2; color-scheme:dark;
+}
+/* Modalità alto contrasto scelta dall'utente */
+html.hc{
+  --bg:#000; --surface:#000; --ink:#fff; --muted:#fff; --line:#fff;
+  --accent:#ffef00; --accent-ink:#000; --mark:#ffef00;
+  --ok:#7CFF7C; --no:#ff8a8a; --unk:#ffffff; color-scheme:dark;
+}
+html.big{ --fs:1.3rem; }
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:var(--fs);line-height:1.5}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--mark);outline-offset:2px;box-shadow:0 0 0 6px var(--ink)}
+.skip{position:absolute;left:-9999px;top:0;background:var(--mark);color:#000;padding:.6em 1em;font-weight:700;z-index:10}
+.skip:focus{left:8px;top:8px}
+
+header{background:var(--accent);color:var(--accent-ink);padding:14px 16px}
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto}
+h1{font-family:var(--display);font-size:1.45em;margin:0;line-height:1.15;text-wrap:balance}
+h1 span{display:block;font-size:.6em;font-weight:400;opacity:.9}
+.a11y{display:flex;gap:8px;flex-wrap:wrap}
+.a11y button{font:inherit;font-size:.85em;font-weight:700;border:2px solid currentColor;background:transparent;color:inherit;border-radius:8px;padding:.35em .7em;cursor:pointer;min-height:44px}
+.a11y button[aria-pressed="true"]{background:var(--accent-ink);color:var(--accent)}
+
+.proto{background:var(--mark);color:#000;padding:8px 16px;font-size:.9em}
+.proto p{max-width:1200px;margin:0 auto}
+
+main{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:16px}
+@media (min-width:900px){ main{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:start} #detail{position:sticky;top:16px} }
+
+fieldset{border:0;padding:0;margin:0 0 12px}
+legend{font-weight:700;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:.95em;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:.35em .9em;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;gap:.4em}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.chip .ico{font-weight:700}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.tabs{display:flex;gap:8px;margin:4px 0 12px}
+.tabs button{flex:1;font:inherit;font-weight:700;padding:.55em;border:2px solid var(--accent);background:var(--surface);color:var(--accent);border-radius:8px;cursor:pointer;min-height:44px}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.count{color:var(--muted);margin:0 0 8px}
+
+ul.list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.card{width:100%;text-align:left;font:inherit;color:inherit;background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;display:grid;gap:4px}
+.card:hover{border-color:var(--accent)}
+.card[aria-current="true"]{border-color:var(--accent);box-shadow:inset 6px 0 0 var(--accent)}
+.card h3{margin:0;font-size:1.05em}
+.meta{color:var(--muted);font-size:.9em}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tag{font-size:.8em;border:1px solid var(--line);border-radius:6px;padding:.05em .45em}
+.verif{font-size:.8em;font-weight:700}
+
+.map{width:100%;height:420px;border-radius:10px;border:1px solid var(--line);z-index:0}
+.pin{width:26px;height:26px;border-radius:50%;background:#0b4fa8;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+.pin.sel{background:#ffcf33;border-color:#0f1b2d;width:32px;height:32px}
+.leaflet-marker-icon:focus-visible{outline:3px solid #ffcf33;outline-offset:2px}
+.leaflet-container{font-family:var(--body)}
+.note{font-size:.85em;color:var(--muted)}
+
+#detail h2{margin:0 0 4px;font-size:1.3em;text-wrap:balance}
+#detail h3{font-size:1em;margin:18px 0 8px}
+.crit{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.crit li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:6px 0}
+.st{font-weight:700;white-space:nowrap}
+.st.si{color:var(--ok)} .st.no{color:var(--no)} .st.nd{color:var(--unk)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn{font:inherit;font-weight:700;display:inline-flex;align-items:center;min-height:44px;padding:.45em .9em;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);text-decoration:none;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+form.rep{display:grid;gap:10px;margin-top:8px}
+form.rep .row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:8px;padding:.35em .5em;min-height:44px}
+textarea{width:100%;min-height:80px}
+.thanks{background:var(--bg);border-left:6px solid var(--ok);padding:8px 12px}
+.empty{padding:20px;text-align:center;color:var(--muted)}
+footer{max-width:1200px;margin:0 auto;padding:8px 16px 32px;color:var(--muted);font-size:.85em}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#risultati">Vai ai risultati</a>
+<header>
+  <div class="top">
+    <h1>Sport Senza Barriere <span>Torino · dove fare sport, se è accessibile, come arrivarci</span></h1>
+    <div class="a11y" role="group" aria-label="Opzioni di lettura">
+      <button id="bigText" aria-pressed="false">Testo grande</button>
+      <button id="hiCon" aria-pressed="false">Alto contrasto</button>
+    </div>
+  </div>
+</header>
+<div class="proto" role="note"><p><strong>Versione beta.</strong> Luoghi reali trovati in fonti pubbliche; i dati di accessibilità non sono ancora verificati sul posto. Aiutaci a completarli con il pulsante "Segnala com'è".</p></div>
+
+<main>
+  <section aria-labelledby="cerca-t">
+    <div class="panel">
+      <h2 id="cerca-t" style="margin:0 0 10px;font-size:1.1em">Cosa cerchi?</h2>
+      <fieldset>
+        <legend>La mia disabilità</legend>
+        <div class="chips" id="fDis"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Sport</legend>
+        <div class="chips" id="fSport"></div>
+      </fieldset>
+    </div>
+
+    <div class="panel" style="margin-top:16px" id="risultati" tabindex="-1">
+      <div class="tabs" role="tablist" aria-label="Vista risultati">
+        <button role="tab" id="tabList" aria-selected="true" aria-controls="viewList">Elenco</button>
+        <button role="tab" id="tabMap" aria-selected="false" aria-controls="viewMap">Mappa</button>
+      </div>
+      <p class="count" id="count" aria-live="polite"></p>
+      <div id="viewList" role="tabpanel" aria-labelledby="tabList"><ul class="list" id="list"></ul></div>
+      <div id="viewMap" role="tabpanel" aria-labelledby="tabMap" hidden>
+        <div class="map" id="map" role="region" aria-label="Mappa di Torino con i luoghi trovati"></div>
+        <p class="note">Alcune posizioni sono indicative. I luoghi senza indirizzo preciso compaiono solo nell'elenco.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="detail" class="panel" aria-live="polite" aria-labelledby="dTitle"></section>
+</main>
+<footer>
+  <p>Fonti dei luoghi: Comune di Torino (circoscrizioni 3 e 7), Regione Piemonte, Turismo Torino, disabili.com, Avvenire, Superabile. Criteri di accessibilità ispirati alle barriere segnalate dalle persone con disabilità: ingresso, spogliatoi, attrezzi, personale formato, trasporti.</p>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+const DIS = [
+  {id:"motoria", label:"Motoria", ico:"♿"},
+  {id:"visiva", label:"Visiva", ico:"◉"},
+  {id:"uditiva", label:"Uditiva", ico:"≋"},
+  {id:"intellettiva", label:"Intellettiva / relazionale", ico:"✱"}
+];
+const ALL = DIS.map(d=>d.id);
+
+const CRIT = [
+  {id:"ingresso", label:"Ingresso senza gradini o con rampa", dis:["motoria"]},
+  {id:"spogliatoi", label:"Spogliatoi e bagni accessibili", dis:["motoria"]},
+  {id:"attrezzi", label:"Attrezzi o ausili adattati", dis:["motoria","visiva"]},
+  {id:"parcheggio", label:"Parcheggio riservato vicino", dis:["motoria"]},
+  {id:"tattili", label:"Percorsi tattili e segnaletica in braille", dis:["visiva"]},
+  {id:"visivo", label:"Avvisi visivi e istruttore che conosce la LIS", dis:["uditiva"]},
+  {id:"easy", label:"Istruzioni semplici, con immagini, ambiente tranquillo", dis:["intellettiva"]},
+  {id:"staff", label:"Istruttori formati sulla disabilità", dis:ALL}
+];
+
+// Luoghi reali da fonti pubbliche. Coordinate approssimative (prototipo).
+const PLACES = [
+  {id:"cip", name:"Comitato Paralimpico – Piemonte", kind:"Orientamento e corsi di avviamento",
+   addr:"Via Giordano Bruno 191, Torino", lat:45.031, lon:7.648, sports:["multisport"], dis:ALL,
+   desc:"Ente che coordina lo sport paralimpico in Piemonte. Organizza corsi di avviamento alle discipline paralimpiche per chi non è ancora tesserato. Buon punto di partenza per capire quale sport fa per te.",
+   src:"Regione Piemonte; CIP Piemonte, avviso corsi 2026", contact:"piemonte@comitatoparalimpico.it"},
+  {id:"nuoto3", name:"Nuoto per persone con disabilità – Circoscrizione 3", kind:"Progetto di associazioni con il Comune",
+   addr:"Circoscrizione 3 (San Paolo, Cenisia, Pozzo Strada, Cit Turin, Borgata Lesna)", lat:45.066, lon:7.640, approx:true, sports:["nuoto"], dis:ALL,
+   desc:"Rete di associazioni Pandha, Fuori Onda, Paideia e Senza Limiti con l'Assessorato allo Sport. Circa 400 partecipanti, alcuni atleti agonisti. Piscina esatta da confermare.",
+   src:"Comune di Torino, Circoscrizione 3"},
+  {id:"acli", name:"US Acli Torino – \"Sport per tutti secondo ciascuno\"", kind:"Progetto sportivo, Circoscrizione 7",
+   addr:"Via Perrone 3 bis, Torino (sede)", lat:45.0725, lon:7.6705, sports:["multisport"], dis:["motoria","intellettiva"],
+   desc:"Progetto finanziato dalla Circoscrizione 7 nel 2026 per persone con disabilità fisica e intellettiva. Massimo 20 partecipanti.",
+   src:"Comune di Torino, Circoscrizione 7, 2026"},
+  {id:"giuco", name:"GiuCo '97", kind:"Associazione sportiva",
+   addr:"Zona Porta Palazzo, Torino", lat:45.079, lon:7.683, approx:true, sports:["calcio","multisport"], dis:ALL,
+   desc:"Associazione ispirata al Cottolengo con la missione di permettere a tutti di fare sport.",
+   src:"Avvenire"},
+  {id:"insuperabili", name:"Insuperabili", kind:"Scuole calcio inclusive",
+   addr:"Torino (sedi da confermare)", sports:["calcio"], dis:ALL,
+   desc:"Nata a Torino, fa giocare a calcio bambini, ragazzi e adulti con disabilità fisico-motoria, cognitivo-relazionale, comportamentale e sensoriale.",
+   src:"Superabile (INAIL)"},
+  {id:"sportdipiu", name:"Sportdipiù", kind:"Associazione sport per persone con disabilità",
+   addr:"Torino (sede da confermare)", sports:["hockey"], dis:["motoria"],
+   desc:"Associazione torinese impegnata nella diffusione del para ice hockey e dello sport per persone con disabilità.",
+   src:"Avvenire"},
+  {id:"paideia", name:"Bike sharing accessibile – Fondazione Paideia", kind:"Biciclette adattate",
+   addr:"Lungo il Po, Torino (punto esatto da confermare)", lat:45.054, lon:7.686, approx:true, sports:["ciclismo"], dis:ALL,
+   desc:"Biciclette adattate per bambini e famiglie con disabilità sui percorsi ciclabili della città. Volontari e istruttori di Paideia Sport aiutano a scegliere la bici adatta.",
+   src:"disabili.com"},
+  {id:"cus", name:"CUS Torino", kind:"Centro universitario sportivo",
+   addr:"Via Paolo Braccini 1, Torino", lat:45.064, lon:7.656, sports:["multisport"], dis:[],
+   desc:"Segnalato da Turismo Torino tra le realtà di sport accessibile. Discipline adattate da verificare.",
+   src:"Turismo Torino"},
+  {id:"asti", name:"Palazzetto dello Sport Gianni Asti", kind:"Impianto comunale",
+   addr:"Parco Ruffini, Torino", lat:45.0597, lon:7.6418, sports:["multisport"], dis:[],
+   desc:"Impianto gestito direttamente dalla Città. Accessibilità non ancora rilevata.",
+   src:"Città di Torino, impianti sportivi"},
+  {id:"nebiolo", name:"Stadio di Atletica Primo Nebiolo", kind:"Impianto comunale",
+   addr:"Parco Ruffini, Torino", lat:45.0578, lon:7.6455, sports:["atletica"], dis:[],
+   desc:"Impianto gestito direttamente dalla Città. Accessibilità non ancora rilevata.",
+   src:"Città di Torino, impianti sportivi"},
+  {id:"monumentale", name:"Piscina Stadio Monumentale", kind:"Impianto comunale",
+   addr:"Zona Stadio Olimpico, Torino", lat:45.043, lon:7.649, approx:true, sports:["nuoto"], dis:[],
+   desc:"Impianto gestito direttamente dalla Città. Accessibilità non ancora rilevata.",
+   src:"Città di Torino, impianti sportivi"},
+  {id:"tazzoli", name:"Palazzo del Ghiaccio Tazzoli", kind:"Impianto comunale",
+   addr:"Via San Remo, Torino", lat:45.035, lon:7.624, approx:true, sports:["hockey"], dis:[],
+   desc:"Impianto gestito direttamente dalla Città. Accessibilità non ancora rilevata.",
+   src:"Città di Torino, impianti sportivi"}
+];
+
+const SPORTS = [
+  {id:"nuoto",label:"Nuoto"},{id:"calcio",label:"Calcio"},{id:"atletica",label:"Atletica"},
+  {id:"ciclismo",label:"Ciclismo"},{id:"hockey",label:"Hockey su ghiaccio"},{id:"multisport",label:"Più sport"}
+];
+
+const state = {dis:new Set(), sport:new Set(), sel:null, view:"list"};
+let reports = {};
+try{ reports = JSON.parse(localStorage.getItem("ssb-reports")||"{}"); }catch(e){ reports = {}; }
+function saveReports(){ try{ localStorage.setItem("ssb-reports", JSON.stringify(reports)); }catch(e){} }
+
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function chip(container, items, set, withIco){
+  container.innerHTML = "";
+  items.forEach(it=>{
+    const b = document.createElement("button");
+    b.type="button"; b.className="chip"; b.setAttribute("aria-pressed","false");
+    b.innerHTML = (withIco?`<span class="ico" aria-hidden="true">${it.ico}</span>`:"")+esc(it.label);
+    b.onclick=()=>{ set.has(it.id)?set.delete(it.id):set.add(it.id); b.setAttribute("aria-pressed", set.has(it.id)); render(); };
+    container.appendChild(b);
+  });
+}
+
+function filtered(){
+  return PLACES.filter(p=>{
+    if(state.sport.size && !p.sports.some(s=>state.sport.has(s))) return false;
+    if(state.dis.size){
+      // impianti con accessibilità non rilevata restano visibili, segnalati come "da verificare"
+      if(p.dis.length && ![...state.dis].every(d=>p.dis.includes(d))) return false;
+    }
+    return true;
+  });
+}
+
+function status(p, cId){
+  const r = reports[p.id]; if(r && r.crit && r.crit[cId]) return r.crit[cId];
+  return "nd";
+}
+const ST = {si:"Sì", no:"No", nd:"Da verificare"};
+
+function render(){
+  const res = filtered();
+  $("#count").textContent = res.length===1 ? "1 luogo trovato" : `${res.length} luoghi trovati`;
+  const ul = $("#list"); ul.innerHTML="";
+  if(!res.length){ ul.innerHTML = `<li class="empty">Nessun luogo con questi filtri. Prova a togliere uno sport o una disabilità.</li>`; }
+  res.forEach(p=>{
+    const li = document.createElement("li");
+    const disTxt = p.dis.length ? (p.dis.length===4 ? "Tutte le disabilità" : p.dis.map(d=>DIS.find(x=>x.id===d).label).join(", ")) : "Disabilità accolte: da verificare";
+    const rep = reports[p.id] ? `<span class="verif" style="color:var(--ok)">✓ Hai inviato una segnalazione</span>` : `<span class="verif" style="color:var(--unk)">Accessibilità da verificare</span>`;
+    li.innerHTML = `<button class="card" type="button" ${state.sel===p.id?'aria-current="true"':""}>
+      <h3>${esc(p.name)}</h3>
+      <span class="meta">${esc(p.kind)} · ${esc(p.addr)}</span>
+      <span class="tags">${p.sports.map(s=>`<span class="tag">${esc(SPORTS.find(x=>x.id===s).label)}</span>`).join("")}<span class="tag">${esc(disTxt)}</span></span>
+      ${rep}</button>`;
+    li.querySelector("button").onclick=()=>select(p.id, true);
+    ul.appendChild(li);
+  });
+  drawMap(res);
+  renderDetail();
+}
+
+// Mappa reale (Leaflet + OpenStreetMap). Se la mappa non carica (offline), resta l'elenco.
+let map=null, layer=null;
+function initMap(){
+  if(map || typeof L==="undefined") return;
+  map = L.map("map",{scrollWheelZoom:false}).setView([45.062,7.668],13);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+  layer = L.layerGroup().addTo(map);
+}
+function drawMap(res){
+  if(!map) return;
+  layer.clearLayers();
+  res.filter(p=>p.lat).forEach(p=>{
+    const sel = state.sel===p.id;
+    const m = L.marker([p.lat,p.lon],{
+      title:p.name, alt:p.name, keyboard:true,
+      icon:L.divIcon({className:"", html:`<div class="pin ${sel?"sel":""}"></div>`, iconSize:sel?[32,32]:[26,26]})
+    });
+    m.on("click",()=>select(p.id,true));
+    m.addTo(layer);
+  });
+}
+
+function select(id, focus){
+  state.sel=id; render();
+  const pl=PLACES.find(x=>x.id===id); if(map && pl && pl.lat) map.panTo([pl.lat,pl.lon]);
+  if(focus){ const t=$("#dTitle"); if(t){ t.focus({preventScroll:true}); if(window.innerWidth<900) t.scrollIntoView({behavior:"smooth",block:"start"}); } }
+}
+
+function renderDetail(){
+  const box = $("#detail");
+  const p = PLACES.find(x=>x.id===state.sel);
+  if(!p){
+    box.innerHTML = `<h2 id="dTitle" tabindex="-1">Scegli un luogo</h2>
+    <p>Seleziona la tua disabilità e lo sport che ti interessa, poi apri un luogo per vedere:</p>
+    <ul><li>se è accessibile, punto per punto;</li><li>come arrivarci con i mezzi;</li><li>chi contattare.</li></ul>
+    <p class="note">Le voci di accessibilità mostrate dipendono dalla disabilità che scegli. Se non ne scegli nessuna, le vedi tutte.</p>`;
+    return;
+  }
+  const want = state.dis.size ? [...state.dis] : ALL;
+  const crits = CRIT.filter(c=>c.dis.some(d=>want.includes(d)));
+  const dest = encodeURIComponent(p.addr.replace(/\(.*?\)/g,"").trim());
+  const r = reports[p.id];
+  box.innerHTML = `
+    <h2 id="dTitle" tabindex="-1">${esc(p.name)}</h2>
+    <p class="meta">${esc(p.kind)} · ${esc(p.addr)}${p.approx?" · posizione indicativa":""}</p>
+    <p>${esc(p.desc)}</p>
+
+    <h3>È accessibile?</h3>
+    <ul class="crit">${crits.map(c=>{const s=status(p,c.id);return `<li><span>${esc(c.label)}</span><span class="st ${s}">${ST[s]}</span></li>`}).join("")}</ul>
+    ${r&&r.note?`<p class="thanks"><strong>La tua nota:</strong> ${esc(r.note)}</p>`:""}
+
+    <h3>Come arrivarci</h3>
+    <p>Percorso con i mezzi GTT, calcolato da Google Maps. Nella versione completa vedrai anche se le fermate e le stazioni della metro sono accessibili.</p>
+    <div class="btns">
+      <a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=transit" target="_blank" rel="noopener">Percorso con i mezzi</a>
+      ${p.contact?`<span class="btn ghost" style="cursor:text">${esc(p.contact)}</span>`:""}
+    </div>
+
+    <h3>Ci sei stato? Segnala com'è</h3>
+    <form class="rep" id="repForm">
+      ${crits.map(c=>`<div class="row"><label for="r-${c.id}">${esc(c.label)}</label>
+        <select id="r-${c.id}" name="${c.id}">
+          <option value="nd"${status(p,c.id)==="nd"?" selected":""}>Non so</option>
+          <option value="si"${status(p,c.id)==="si"?" selected":""}>Sì</option>
+          <option value="no"${status(p,c.id)==="no"?" selected":""}>No</option>
+        </select></div>`).join("")}
+      <label for="r-note">Note (facoltativo)</label>
+      <textarea id="r-note" name="note" placeholder="Es. la rampa è sul retro, chiedere all'ingresso">${r&&r.note?esc(r.note):""}</textarea>
+      <button class="btn" type="submit">Salva segnalazione</button>
+      <p class="note">Per ora la segnalazione resta solo sul tuo dispositivo.</p>
+    </form>
+    <p class="note">Fonte: ${esc(p.src)}</p>`;
+  $("#repForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target); const crit={};
+    crits.forEach(c=>{ const v=fd.get(c.id); if(v!=="nd") crit[c.id]=v; });
+    reports[p.id] = {crit:{...(reports[p.id]?.crit||{}),...crit}, note:(fd.get("note")||"").trim()};
+    saveReports(); render();
+    const t=$("#dTitle"); if(t){ t.insertAdjacentHTML("afterend",'<p class="thanks" role="status">Grazie! Segnalazione salvata.</p>'); }
+  });
+}
+
+// Tab elenco / mappa
+function setView(v){
+  state.view=v;
+  $("#tabList").setAttribute("aria-selected", v==="list"); $("#tabMap").setAttribute("aria-selected", v==="map");
+  $("#viewList").hidden = v!=="list"; $("#viewMap").hidden = v!=="map";
+  if(v==="map"){ initMap(); if(map){ map.invalidateSize(); drawMap(filtered()); } }
+}
+$("#tabList").onclick=()=>setView("list"); $("#tabMap").onclick=()=>setView("map");
+
+// Opzioni di lettura (ricordate sul dispositivo)
+function toggle(btn, cls, key){
+  const on = !document.documentElement.classList.contains(cls);
+  document.documentElement.classList.toggle(cls,on); btn.setAttribute("aria-pressed",on);
+  try{ localStorage.setItem(key, on?"1":"0"); }catch(e){}
+}
+[["#bigText","big","ssb-big"],["#hiCon","hc","ssb-hc"]].forEach(([s,c,k])=>{
+  const b=$(s); b.onclick=()=>toggle(b,c,k);
+  try{ if(localStorage.getItem(k)==="1"){ document.documentElement.classList.add(c); b.setAttribute("aria-pressed","true"); } }catch(e){}
+});
+
+chip($("#fDis"), DIS, state.dis, true);
+chip($("#fSport"), SPORTS, state.sport, false);
+state.sel = "cip";
+render();
+if("serviceWorker" in navigator && location.protocol==="https:"){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+</script>
+</body>
+</html>
