@@ -253,7 +253,7 @@ const PLACES = [
    desc:"Progetto finanziato dalla Circoscrizione 7 nel 2026 per persone con disabilità fisica e intellettiva. Massimo 20 partecipanti.",
    src:"Comune di Torino, Circoscrizione 7, 2026"},
   {id:"acli-nuoto", comune:"Torino", name:"US Acli Torino – nuoto alla Piscina Franzoj", kind:"Corso di nuoto, Circoscrizione 4",
-   addr:"Piscina Franzoj, Torino (Circoscrizione 4)", lat:45.084, lon:7.628, approx:true, sports:["nuoto"], dis:ALL,
+   addr:"Piscina Franzoj, Strada Antica di Collegno 211, Torino", lat:45.0862, lon:7.6215, approx:true, sports:["nuoto"], dis:ALL,
    desc:"Inserimento di persone con disabilità nelle attività di nuoto, stagione ottobre 2025 – maggio 2026. Posti limitati (circa 5 persone).",
    src:"Comune di Torino, Circoscrizione 4"},
   {id:"giuco", comune:"Torino", name:"GiuCo '97", kind:"Associazione sportiva",
@@ -312,11 +312,34 @@ const PLACES = [
   {id:"nessunoescluso", comune:"Villafranca Piemonte", name:"Nessuno escluso ASD", kind:"Equitazione e riabilitazione equestre",
    addr:"Frazione San Luca 27, Villafranca Piemonte", lat:44.780, lon:7.500, approx:true, sports:["equitazione"], dis:["intellettiva"],
    desc:"Percorso di riabilitazione equestre per bambini con autismo insieme a bambini senza disabilità (progetto regionale, elenco 2017). Verificare se l'attività è ancora attiva.",
-   src:"Regione Piemonte, progetti disabili 2017"}
+   src:"Regione Piemonte, progetti disabili 2017"},
+  // ---- Cintura ovest e dintorni ----
+  {id:"oasi-rivalta", comune:"Rivalta di Torino", name:"O.A.S.I. Laura Vicuna – basket unificato", kind:"Centro sportivo",
+   addr:"Via Laura Vicuna 8, Rivalta di Torino", lat:45.033, lon:7.525, approx:true, sports:["basket"], dis:["intellettiva"],
+   desc:"Ha ospitato nel 2025 un torneo di basket unificato, con squadre di giocatori con e senza disabilità, tra cui Pandha Torino. Verificare se ci sono attività inclusive durante tutto l'anno.",
+   src:"Tuttosport, marzo 2025"},
+  {id:"audido", comune:"Alpignano", name:"Team Audido – sci club", kind:"Sci club con atleti Special Olympics",
+   addr:"Alpignano (sede da confermare)", sports:["sci"], dis:["intellettiva"],
+   desc:"Sci club di Alpignano con atleti con disabilità intellettiva che partecipano ai Giochi Special Olympics. Contatti e luoghi di allenamento da confermare.",
+   src:"disabili.com"},
+  {id:"piscina-grugliasco", comune:"Grugliasco", name:"Piscina comunale di Grugliasco (Rari Nantes Torino)", kind:"Impianto comunale",
+   addr:"Corso Torino 82, Grugliasco", lat:45.0645, lon:7.5905, approx:true, sports:["nuoto"], dis:[],
+   desc:"Piscina comunale gestita da Rari Nantes Torino. Corsi specifici per persone con disabilità e accessibilità non ancora rilevati.",
+   src:"Regione Piemonte, progetto famiglie Grugliasco 2024"},
+  {id:"juve-vinovo", comune:"Vinovo", name:"Juventus – Calcio integrato giovanile", kind:"Progetto di calcio integrato",
+   addr:"Allianz Training Center, Vinovo", lat:44.955, lon:7.632, approx:true, sports:["calcio"], dis:[],
+   desc:"Progetto \"Passaggi di inclusione\" di calcio integrato giovanile, con ragazzi con e senza disabilità. La Juventus ha anche una squadra paralimpica, Juventus One. Modalità di accesso da verificare.",
+   src:"juventus.com"},
+  {id:"sciabile", comune:"Sauze d'Oulx", name:"SciAbile – Sci Club Sportinia", kind:"Scuola di sci adattato",
+   addr:"Piazza Assietta 4, Sauze d'Oulx", lat:45.027, lon:6.859, approx:true, sports:["sci"], dis:ALL,
+   desc:"Scuola di sci per persone con disabilità con ausili come mono-sci, bi-sci, tandem-ski e \"go to ski\" per sciare in piedi. Attività stagionale.",
+   src:"Regione Piemonte; techprincess.it; motorbox.com"}
 ];
 
+const CINTURA_OVEST = ["Collegno","Grugliasco","Rivoli","Rivalta di Torino","Alpignano","Pianezza","Venaria Reale","Druento","Orbassano","Beinasco","Rosta","Villarbasse","Bruino","Piossasco"];
+
 const SPORTS = [
-  {id:"nuoto",label:"Nuoto"},{id:"calcio",label:"Calcio"},{id:"basket",label:"Basket in carrozzina"},
+  {id:"nuoto",label:"Nuoto"},{id:"calcio",label:"Calcio"},{id:"basket",label:"Basket (anche in carrozzina)"},
   {id:"atletica",label:"Atletica"},{id:"ciclismo",label:"Ciclismo"},{id:"sci",label:"Sci"},
   {id:"hockey",label:"Hockey su ghiaccio"},{id:"judo",label:"Judo"},{id:"canoa",label:"Canoa"},
   {id:"acqua",label:"Apnea"},{id:"equitazione",label:"Equitazione"},{id:"multisport",label:"Più sport"}
@@ -387,7 +410,8 @@ function chip(container, items, set, withIco){
 function filtered(){
   return PLACES.filter(p=>{
     if(state.zona==="provincia" && p.comune==="Torino") return false;
-    if(state.zona && state.zona!=="provincia" && p.comune!==state.zona) return false;
+    if(state.zona==="cintura-ovest" && !CINTURA_OVEST.includes(p.comune)) return false;
+    if(state.zona && !["provincia","cintura-ovest"].includes(state.zona) && p.comune!==state.zona) return false;
     if(state.sport.size && !p.sports.some(s=>state.sport.has(s))) return false;
     if(state.dis.size){
       // impianti con accessibilità non rilevata restano visibili, segnalati come "da verificare"
@@ -588,7 +612,7 @@ function toggle(btn, cls, key){
 (function(){
   const sel=$("#fZona");
   const comuni=[...new Set(PLACES.map(p=>p.comune))].filter(c=>c!=="Torino").sort((a,b)=>a.localeCompare(b,"it"));
-  sel.innerHTML='<option value="">Torino e provincia</option><option value="Torino">Solo Torino città</option><option value="provincia">Solo provincia</option>'+
+  sel.innerHTML='<option value="">Torino e provincia</option><option value="Torino">Solo Torino città</option><option value="cintura-ovest">Cintura ovest di Torino</option><option value="provincia">Solo provincia</option>'+
     comuni.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
   sel.onchange=()=>{ state.zona=sel.value; render(); };
 })();
