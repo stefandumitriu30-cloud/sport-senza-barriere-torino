@@ -417,8 +417,11 @@ function toggle(btn, cls, key){
 })();
 chip($("#fDis"), DIS, state.dis, true);
 chip($("#fSport"), SPORTS, state.sport, false);
-state.sel = "cip";
+const hashId = (()=>{ try{ const h=decodeURIComponent(location.hash.slice(1)); return h.startsWith("luogo-")?h.slice(6):""; }catch(e){ return ""; } })();
+const deepLink = PLACES.some(p=>p.id===hashId);
+state.sel = deepLink ? hashId : "cip";
 render();
+if(deepLink) select(hashId, true);
 loadCommunity();
 if("serviceWorker" in navigator && location.protocol==="https:"){
   navigator.serviceWorker.register("sw.js").catch(()=>{});

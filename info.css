@@ -32,3 +32,21 @@ h2{font-size:1.2em;margin:32px 0 8px;text-wrap:balance}
 .box{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:12px 16px}
 ul{padding-left:1.2em}
 li{margin:.3em 0}
+/* Pagine dei luoghi e degli sport */
+header p a.brand{border:0;padding:0;min-height:0;display:inline}
+.crumbs ol{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-wrap:wrap;gap:.3em;color:var(--muted);font-size:.95em}
+.crumbs li+li::before{content:"›";margin-right:.3em}
+.lead{font-size:1.1em}
+.meta{display:grid;grid-template-columns:max-content 1fr;gap:.4em 1em;margin:12px 0 4px}
+.meta dt{font-weight:700}
+.meta dd{margin:0}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}
+.btn{display:inline-flex;align-items:center;min-height:48px;padding:.5em 1em;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-weight:700;text-decoration:none;border:2px solid var(--accent)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.note{color:var(--muted)}
+ul.luoghi{list-style:none;padding:0}
+ul.luoghi li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:8px 0}
+ul.luoghi .sub{color:var(--muted)}
+ul.tags{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+ul.tags a{display:inline-flex;align-items:center;min-height:44px;padding:.3em .9em;border:2px solid var(--accent);border-radius:999px;text-decoration:none;font-weight:700}
+.foot{max-width:760px;margin:0 auto;padding:0 16px 40px;color:var(--muted);font-size:.95em}
